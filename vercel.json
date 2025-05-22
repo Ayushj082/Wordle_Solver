@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "api/wordle.py", "use": "@vercel/python" }
+  ],
+  "routes": [
+    { "src": "/", "dest": "api/wordle.py" }
+  ]
+}
