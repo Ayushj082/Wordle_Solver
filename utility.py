@@ -10,7 +10,7 @@ class Utility():
 
     def load_word_socres_dict(word_socre_file_path: str):
         word_score_lines = [line.split("\t") for line in open(word_socre_file_path, "r").readlines()]
-        word_score_dict = {}
+        word_score_map = {}
         for (word, score) in word_score_lines:
-            word_score_dict[word] = float(score.replace("\r", "").replace("\n", ""))
-        return word_score_dict
+            word_score_map[word] = float(score.replace("\r", "").replace("\n", ""))
+        return word_score_map

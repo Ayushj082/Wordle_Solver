@@ -1,6 +1,4 @@
-#!/usr/bin/env python3
-
-from flask import Flask, request, jsonify, make_response
+from flask import Flask, request, jsonify, make_response, render_template
 from dataclasses import dataclass
 import string
 import json
@@ -80,8 +78,10 @@ def entrypoint_cloudfunction(flask_request):
     return http_response
 
 
-@app.route("/", methods=["POST", "OPTIONS"])
-def entrypoint_flask():
+@app.route("/", methods=["GET", "POST", "OPTIONS"])
+def serve_index():
+    if request.method == "GET":
+        return render_template("index.html")
     return entrypoint_cloudfunction(request)
 
 

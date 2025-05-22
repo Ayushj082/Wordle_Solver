@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import argparse
 import string
 import random
@@ -27,8 +26,8 @@ class WordleGame:
     def pick_a_hidden_word_randomly(self):
         if len(self.word_list) <= 0:
             raise Exception("The word list is empty")
-        hidden_word_index = random.randrange(0, len(self.word_list))
-        self.hidden_word  = self.word_list[hidden_word_index]
+        hidden_word_position = random.randrange(0, len(self.word_list))
+        self.hidden_word  = self.word_list[hidden_word_position]
 
 
     def guess(self, guessed_word) -> str:
