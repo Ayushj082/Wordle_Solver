@@ -88,9 +88,19 @@
       document.getElementById('tries-container').appendChild(div);
     }
 
-  async function submitTries(tries) {
+  async function submitTries() {
   try {
-    const response = await fetch("/api/index.py", {
+    const tries = [];
+    const tryElements = document.querySelectorAll('.try');
+    tryElements.forEach((tryElement) => {
+      const word = tryElement.querySelector('.word-input').value.toUpperCase();
+      const symbols = tryElement.querySelector('.symbols-input').value;
+      if (word && symbols) {
+        tries.push({ word, symbols });
+      }
+    });
+
+    const response = await fetch("/api", {  // Updated to match the backend route
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(tries)
@@ -103,11 +113,13 @@
 
     const result = await response.json();
     console.log("Suggested words:", result.suggested_words);
-    document.getElementById('output').textContent = JSON.stringify(result, null, 2);
+    document.getElementById('output').textContent = JSON.stringify(result.suggested_words, null, 2);
   } catch (error) {
     console.error("Fetch error:", error);
+    document.getElementById('output').textContent = `Error: ${error.message}`;
   }
 }
+
 
   </script>
 </body>
