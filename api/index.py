@@ -6,7 +6,7 @@ import sys
 import random
 
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder="../templates")
 from wordle_solver import WorldSolverMultiList
 
 
@@ -78,13 +78,24 @@ def entrypoint_cloudfunction(flask_request):
     return http_response
 
 
-@app.route("/", methods=["GET", "POST", "OPTIONS"])
-def handler():
-    if request.method == "GET":
-        return render_template("index.html")
+@app.route("/", methods=["GET"])
+def render_index():
+    return render_template("index.html")
 
-    return entrypoint_cloudfunction(request)
+@app.route("/", methods=["POST", "OPTIONS"])
+def api_handler():
+    if request.method == "OPTIONS":
+        return ("", 204, {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST",
+            "Access-Control-Allow-Headers": "Content-Type",
+            "Access-Control-Max-Age": "3600"
+        })
 
+    data = request.get_json()
+    return handle_tries(data,5)
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=7210)
+# Vercel will call this function
+def handler(environ, start_response):
+    return app(environ, start_response)
+
