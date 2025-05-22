@@ -99,10 +99,14 @@
       });
 
       try {
-        const response = await fetch("/", {
+        const response = await fetch("/solve", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(tries)
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log("Suggested words:", data.suggested_words);
       });
 
         if (!response.ok) {
