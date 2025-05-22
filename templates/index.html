@@ -88,37 +88,27 @@
       document.getElementById('tries-container').appendChild(div);
     }
 
-    async function submitTries() {
-      const tries = [];
-      document.querySelectorAll('.try').forEach(tryDiv => {
-        const word = tryDiv.querySelector('.word-input').value.trim().toUpperCase();
-        const symbols = tryDiv.querySelector('.symbols-input').value.trim();
-        if (word && symbols) {
-          tries.push({ word, symbols });
-        }
-      });
+    async function submitTries(tries) {
+  try {
+    const response = await fetch("/api", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(tries)
+    });
 
-      try {
-      const response = await fetch("/api", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(tries)
-  });
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status}, response: ${errorText}`);
+    }
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`HTTP error! status: ${response.status}, response: ${errorText}`);
+    const result = await response.json();
+    console.log("Suggested words:", result.suggested_words);
+    document.getElementById('output').textContent = JSON.stringify(result, null, 2);
+  } catch (error) {
+    console.error("Fetch error:", error);
   }
+}
 
-  const result = await response.json();
-  // Display the full JSON in formatted view
-  document.getElementById("output").textContent = JSON.stringify(result, null, 2);
-    } catch (error) {
-      console.error("Error fetching suggested words:", error);
-      document.getElementById('output').textContent = `Error: ${error.message}`;
-    }
-
-    }
   </script>
 </body>
 </html>

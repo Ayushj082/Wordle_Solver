@@ -1,13 +1,9 @@
 from flask import Flask, request, jsonify, make_response, render_template
 from dataclasses import dataclass
-import string
-import json
-import sys
-import random
-
-app = Flask(__name__, template_folder="../templates")
-
+import string, json, sys, random
 from wordle_solver import WorldSolverMultiList
+
+app = Flask(__name__, template_folder="../templates", static_folder="../static")
 
 @dataclass
 class SolverAPIParameters:
@@ -20,7 +16,7 @@ def write_log(log):
     if SolverAPIParameters.logging_enabled:
         print(log)
 
-def handle_tries(ui_tries: list, word_length: int, exclude_plurals: bool = True, shuffle_suggested_words: bool = False, visit: str = None):
+def handle_tries(ui_tries, word_length, exclude_plurals=True, shuffle_suggested_words=False, visit=None):
     if isinstance(ui_tries, list):
         tries = [(attempt["word"].lower(), attempt["symbols"]) for attempt in ui_tries if "word" in attempt and "symbols" in attempt]
         solver_multi = WorldSolverMultiList(
@@ -30,43 +26,30 @@ def handle_tries(ui_tries: list, word_length: int, exclude_plurals: bool = True,
         )
         solver_multi.max_try_indexes_for_lists = [2, sys.maxsize]
 
-        # Validate input
         if any(letter not in string.ascii_lowercase for attempt in tries for letter in attempt[0]):
-            write_log(json.dumps({"error": "invalid_chars", "request": ui_tries}))
-            return make_response(jsonify(message="Invalid character(s) detected in words"), 400)
+            return make_response(jsonify(error="Invalid characters in word(s)"), 400)
 
         if any(symbol not in solver_multi.solvers[0].permitted_input_symbols for attempt in tries for symbol in attempt[1]):
-            write_log(json.dumps({"error": "invalid_symbols", "request": ui_tries}))
-            return make_response(jsonify(message="Invalid symbol(s) detected in symbols"), 400)
+            return make_response(jsonify(error="Invalid symbols in pattern(s)"), 400)
 
-        if sum(1 for attempt in tries if len(attempt[0]) == word_length and len(attempt[1]) == word_length) != len(tries):
-            write_log(json.dumps({"error": "invalid_lengths", "request": ui_tries}))
-            return make_response(jsonify(message="Invalid length for word(s) or symbol(s)"), 400)
+        if any(len(attempt[0]) != word_length or len(attempt[1]) != word_length for attempt in tries):
+            return make_response(jsonify(error="Invalid word/symbol length"), 400)
 
         solver_multi.tries = tries
         solver_multi.update_pattern_paramters()
-        suggested_words_results = solver_multi.get_suggested_words()
-        suggested_words = suggested_words_results.words[:SolverAPIParameters.max_suggested_words]
+        results = solver_multi.get_suggested_words()
+        suggestions = results.words[:SolverAPIParameters.max_suggested_words]
 
         if shuffle_suggested_words:
-            random.shuffle(suggested_words)
+            random.shuffle(suggestions)
 
-        write_log(json.dumps({
-            "error": None,
-            "request": ui_tries,
-            "response": suggested_words,
-            "visitId": visit
-        }))
+        return jsonify({
+            "word_list": results.word_list_file_path,
+            "suggested_words": suggestions
+        })
 
-        return jsonify(
-            word_list=suggested_words_results.word_list_file_path,
-            suggested_words=suggested_words
-        )
+    return make_response(jsonify(error="Invalid request format"), 400)
 
-    write_log(json.dumps({"error": "wrong_parameter_type", "request": ui_tries, "visitId": visit}))
-    return make_response(jsonify(message="Invalid request"), 400)
-
-# 🌐 API endpoint: only handles POST and OPTIONS
 @app.route("/api", methods=["POST", "OPTIONS"])
 def api_handler():
     if request.method == "OPTIONS":
@@ -81,16 +64,14 @@ def api_handler():
     if not data:
         return make_response(jsonify(error="Invalid or missing JSON"), 400)
 
-    response = handle_tries(data, 5)
+    response = handle_tries(data, word_length=5)
     response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Content-Type"] = "application/json"
     return response
 
-# 🏠 Home route — for rendering HTML
 @app.route("/", methods=["GET"])
 def render_index():
     return render_template("index.html")
 
-# Vercel entrypoint
 def handler(environ, start_response):
     return app(environ, start_response)
