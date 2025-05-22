@@ -90,7 +90,7 @@
 
   async function submitTries(tries) {
   try {
-    const response = await fetch("/api", {
+    const response = await fetch("/api/index.py", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(tries)
