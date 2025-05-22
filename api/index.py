@@ -92,7 +92,10 @@ def api_handler():
         })
 
     data = request.get_json()
-    return handle_tries(data,5)
+    response = handle_tries(data, 5)
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Content-Type"] = "application/json"
+    return response
 
 # Vercel will call this function
 def handler(environ, start_response):
