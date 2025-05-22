@@ -99,25 +99,25 @@
       });
 
       try {
-        const response = await fetch("/solve", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(tries)
-      })
-      .then(response => response.json())
-      .then(data => {
-        console.log("Suggested words:", data.suggested_words);
-      });
+      const response = await fetch("/api", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(tries)
+  });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`HTTP error! status: ${response.status}, response: ${errorText}`);
+  }
 
-        const result = await response.json();
-        document.getElementById('output').textContent = JSON.stringify(result, null, 2);
-      } catch (error) {
-        document.getElementById('output').textContent = `Error: ${error.message}`;
-      }
+  const result = await response.json();
+  // Display the full JSON in formatted view
+  document.getElementById("output").textContent = JSON.stringify(result, null, 2);
+    } catch (error) {
+      console.error("Error fetching suggested words:", error);
+      document.getElementById('output').textContent = `Error: ${error.message}`;
+    }
+
     }
   </script>
 </body>
