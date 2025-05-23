@@ -11,8 +11,10 @@ app = Flask(__name__, template_folder="../templates", static_folder="../static")
 
 @dataclass
 class SolverAPIParameters:
-    opener_word_list_file_path: str = "english_words_opener.txt"
-    full_word_list_file_path: str = "english_words_full.txt"
+    # Compute absolute paths relative to the location of index.py
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    opener_word_list_file_path: str = os.path.join(base_dir, "english_words_opener.txt")
+    full_word_list_file_path: str = os.path.join(base_dir, "english_words_full.txt")
     max_suggested_words: int = 10
     logging_enabled: bool = True
 
@@ -79,3 +81,6 @@ def render_index():
 
 def handler(environ, start_response):
     return app(environ, start_response)
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5000)

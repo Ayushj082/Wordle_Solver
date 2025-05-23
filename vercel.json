@@ -2,20 +2,29 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/index.py",
-      "use": "@vercel/python"
+      "src": "api/solve.py",
+      "use": "@vercel/python",
+      "config": { "maxLambdaSize": "15mb" }
+    },
+    {
+      "src": "templates/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
     {
       "src": "/api",
-      "methods": ["POST", "OPTIONS"],
-      "dest": "api/index.py"
+      "dest": "/api/solve.py",
+      "methods": ["POST", "OPTIONS"]
     },
     {
-      "src": "/",
-      "methods": ["GET"],
-      "dest": "api/index.py"
+      "src": "/test",
+      "dest": "/api/solve.py",
+      "methods": ["GET"]
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/templates/index.html"
     }
   ]
 }
